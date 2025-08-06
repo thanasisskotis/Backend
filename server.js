@@ -3,9 +3,13 @@ import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
 import fs from 'fs';
 import cors from 'cors';
-app.use(cors());
-
+// ✅ Create app before using it
 const app = express();
+
+// ✅ Now it's safe to use app
+app.use(cors());
+app.use(express.json());
+
 const upload = multer({ dest: 'uploads/' });
 
 cloudinary.config({
@@ -74,6 +78,7 @@ app.get('/images/:boxId', async (req, res) => {
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 
 
 
