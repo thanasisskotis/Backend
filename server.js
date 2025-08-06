@@ -18,15 +18,27 @@ app.use(express.json());
 app.post('/upload', upload.single('image'), async (req, res) => {
   const { boxId } = req.body;
 
+  console.log("✅ Upload endpoint hit");
+  console.log("boxId:", boxId);
+  console.log("Uploaded file:", req.file);
+
+  if (!req.file) {
+    console.error("❌ No file received");
+    return res.status(400).json({ success: false, message: "No file received" });
+  }
+
   try {
     const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: `box_${boxId}`, // images organized per box folder
+      folder: `box_${boxId}`,
     });
-    // Delete temp file after upload
+
     fs.unlinkSync(req.file.path);
 
+    console.log("✅ Upload successful:", result.secure_url);
     res.json({ success: true, url: result.secure_url, public_id: result.public_id });
+
   } catch (error) {
+    console.error("❌ Cloudinary upload error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -34,8 +46,9 @@ app.post('/upload', upload.single('image'), async (req, res) => {
 // Fetch all images for a box
 app.get('/images/:boxId', async (req, res) => {
   const boxId = req.params.boxId;
+  console.log("📥 Fetching images for box:", boxId);
+
   try {
-    // List all images in that folder
     const response = await cloudinary.api.resources({
       type: 'upload',
       prefix: `box_${boxId}/`,
@@ -47,13 +60,17 @@ app.get('/images/:boxId', async (req, res) => {
       public_id: img.public_id,
     }));
 
-    res.json({ success: true, images });
+    console.log(`✅ Fetched ${images.length} images for box ${boxId}`);
+    res.json(images);
+
   } catch (error) {
+    console.error("❌ Failed to fetch images:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 
 
