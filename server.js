@@ -18,10 +18,11 @@ app.use(express.json());
 
 // Upload endpoint
 app.post('/upload', upload.single('image'), async (req, res) => {
-  const { boxId } = req.body;
+  const { boxId, date } = req.body;
 
   console.log("✅ Upload endpoint hit");
   console.log("boxId:", boxId);
+  console.log("date:", date); // <-- log date
   console.log("Uploaded file:", req.file);
 
   if (!req.file) {
@@ -73,6 +74,7 @@ app.get('/images/:boxId', async (req, res) => {
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 
 
 
