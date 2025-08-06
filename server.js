@@ -63,7 +63,7 @@ app.get('/images/:boxId', async (req, res) => {
     }));
 
     console.log(`✅ Fetched ${images.length} images for box ${boxId}`);
-    res.json(images);
+    res.json({ success: true, images });
 
   } catch (error) {
     console.error("❌ Failed to fetch images:", error);
@@ -73,6 +73,7 @@ app.get('/images/:boxId', async (req, res) => {
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 
 
 
