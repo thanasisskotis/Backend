@@ -3,30 +3,30 @@ import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
 import fs from 'fs';
 import cors from 'cors';
-// ✅ Create app before using it
+import dotenv from 'dotenv';  // ✅ Load environment variables
+
+dotenv.config(); // ✅ Must be called before using process.env
+
 const app = express();
 
-// ✅ Now it's safe to use app
 app.use(cors());
 app.use(express.json());
 
 const upload = multer({ dest: 'uploads/' });
 
 cloudinary.config({
-  cloud_name: process.env.cloud_name,
+  cloud_name: process.env.cloud_name,     // ✅ should be set in .env or Render env vars
   api_key: process.env.api_key,
   api_secret: process.env.api_secret,
 });
 
-app.use(express.json());
-
-// Upload endpoint
+// ✅ Upload endpoint
 app.post('/upload', upload.single('image'), async (req, res) => {
   const { boxId, date } = req.body;
 
   console.log("✅ Upload endpoint hit");
   console.log("boxId:", boxId);
-  console.log("date:", date); // <-- log date
+  console.log("date:", date);
   console.log("Uploaded file:", req.file);
 
   if (!req.file) {
@@ -36,10 +36,10 @@ app.post('/upload', upload.single('image'), async (req, res) => {
 
   try {
     const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: `box_${boxId}`,
+      folder: `box_${boxId}`, // ✅ This is now handled correctly
     });
 
-    fs.unlinkSync(req.file.path);
+    fs.unlinkSync(req.file.path); // ✅ clean up temp file
 
     console.log("✅ Upload successful:", result.secure_url);
     res.json({ success: true, url: result.secure_url, public_id: result.public_id });
@@ -50,7 +50,7 @@ app.post('/upload', upload.single('image'), async (req, res) => {
   }
 });
 
-// Fetch all images for a box
+// ✅ Fetch all images for a box
 app.get('/images/:boxId', async (req, res) => {
   const boxId = req.params.boxId;
   console.log("📥 Fetching images for box:", boxId);
@@ -77,11 +77,4 @@ app.get('/images/:boxId', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
-
-
-
-
-
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
