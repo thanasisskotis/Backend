@@ -7,9 +7,9 @@ const app = express();
 const upload = multer({ dest: 'uploads/' });
 
 cloudinary.config({
-  cloud_name: 'YOUR_CLOUD_NAME',
-  api_key: 'YOUR_API_KEY',
-  api_secret: 'YOUR_API_SECRET',
+  cloud_name: process.env.YOUR_CLOUD_NAME,
+  api_key: process.env.YOUR_API_KEY,
+  api_secret: process.env.YOUR_API_SECRET,
 });
 
 app.use(express.json());
@@ -54,3 +54,4 @@ app.get('/images/:boxId', async (req, res) => {
 });
 
 app.listen(3000, () => console.log('Server running on port 3000'));
+
