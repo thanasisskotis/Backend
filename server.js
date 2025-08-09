@@ -5,7 +5,6 @@ import multer from 'multer';
 import fs from 'fs';
 import cors from 'cors';
 
-
 const app = express();
 
 app.use(cors());
@@ -14,17 +13,15 @@ app.use(express.json());
 const upload = multer({ dest: 'uploads/' });
 
 cloudinary.config({
-  cloud_name: process.env.cloud_name,     // ✅ should be set in .env or Render env vars
+  cloud_name: process.env.cloud_name,
   api_key: process.env.api_key,
   api_secret: process.env.api_secret,
 });
 
 // ✅ Upload endpoint
 app.post('/upload', upload.single('image'), async (req, res) => {
-  const { boxId, date } = req.body;
-
+  const { date } = req.body; // ✅ Extract the date directly
   console.log("✅ Upload endpoint hit");
-  console.log("boxId:", boxId);
   console.log("date:", date);
   console.log("Uploaded file:", req.file);
 
@@ -34,17 +31,41 @@ app.post('/upload', upload.single('image'), async (req, res) => {
   }
 
   try {
+    // Use date as folder name
     const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: `box_${boxId}`, // ✅ This is now handled correctly
+      folder: date, // ✅ Folder = date
     });
 
-    fs.unlinkSync(req.file.path); // ✅ clean up temp file
+    fs.unlinkSync(req.file.path); // Clean temp file
 
     console.log("✅ Upload successful:", result.secure_url);
-    res.json({ success: true, url: result.secure_url, public_id: result.public_id });
+    res.json({
+      success: true,
+      url: result.secure_url,
+      public_id: result.public_id,
+      date // Return date so frontend can update without reload
+    });
 
   } catch (error) {
     console.error("❌ Cloudinary upload error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// ✅ Fetch all boxes (folders) with date info
+app.get('/boxes', async (req, res) => {
+  try {
+    const result = await cloudinary.api.sub_folders('');
+
+    // Each folder name is assumed to be a date string (ISO or readable)
+    const boxes = (result.folders || []).map(f => ({
+      date: f.name       // Same as ID since folder = date
+    }));
+
+    res.json({ success: true, boxes });
+
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -57,7 +78,7 @@ app.get('/images/:boxId', async (req, res) => {
   try {
     const response = await cloudinary.api.resources({
       type: 'upload',
-      prefix: `box_${boxId}/`,
+      prefix: `${boxId}/`, // ✅ boxId is the folder name (date)
       max_results: 200,
     });
 
@@ -77,6 +98,3 @@ app.get('/images/:boxId', async (req, res) => {
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
-
-
