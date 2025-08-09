@@ -59,6 +59,7 @@ app.get('/boxes', async (req, res) => {
 
     // Each folder name is assumed to be a date string (ISO or readable)
     const boxes = (result.folders || []).map(f => ({
+      id: f.name,        // Folder name acts as box ID
       date: f.name       // Same as ID since folder = date
     }));
 
